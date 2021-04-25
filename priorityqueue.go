@@ -60,7 +60,6 @@ func (m *PrioirityQueue) downHeapify(current int) {
 	smallest := current
 	leftChildIndex := m.leftchild(current)
 	rightRightIndex := m.rightchild(current)
-	//If current is smallest then return
 	if leftChildIndex < m.size && m.jobs[leftChildIndex].GetNextRunUnixNanoTime() < m.jobs[smallest].GetNextRunUnixNanoTime() {
 		smallest = leftChildIndex
 	}
