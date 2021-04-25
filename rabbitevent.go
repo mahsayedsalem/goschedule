@@ -3,6 +3,7 @@ package goschedule
 import (
 	"sync"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/streadway/amqp"
 )
 
@@ -20,7 +21,7 @@ type rabbitMQEvent struct {
 }
 
 type rabbitMQEventInfo struct {
-	LatestPublishFailed string
+	LatestPublishStatus string
 	FailedReason        string
 }
 
@@ -38,6 +39,8 @@ func newRabbitMQEvent(ch *amqp.Channel, exchange string, routingKey string, mand
 }
 
 func (r *rabbitMQEvent) publishEvent(wg *sync.WaitGroup) {
+	defer wg.Done()
+	log.Info("Running event inside job ", r.identifier)
 	err := r.ch.Publish(
 		r.exchange,
 		r.routingKey,
@@ -52,6 +55,11 @@ func (r *rabbitMQEvent) publishEvent(wg *sync.WaitGroup) {
 		r.latestPublishFailed = true
 		r.failedReason = err.Error()
 	}
+	status := "success"
+	if r.latestPublishFailed {
+		status = "fail"
+	}
+	log.Info("Event inside job ", r.identifier, " status: ", status)
 }
 
 func (r *rabbitMQEvent) GetRabbitEventInfo() *rabbitMQEventInfo {
@@ -60,7 +68,7 @@ func (r *rabbitMQEvent) GetRabbitEventInfo() *rabbitMQEventInfo {
 		status = "fail"
 	}
 	return &rabbitMQEventInfo{
-		LatestPublishFailed: status,
+		LatestPublishStatus: status,
 		FailedReason:        r.failedReason,
 	}
 }

@@ -2,12 +2,11 @@ package goschedule
 
 import (
 	"errors"
-	"os"
-	"strconv"
 	"sync"
 	"time"
 
 	log "github.com/sirupsen/logrus"
+	"github.com/streadway/amqp"
 )
 
 type Scheduler struct {
@@ -17,27 +16,19 @@ type Scheduler struct {
 	quit          chan bool
 	workers       []*worker
 	numberWorkers int
-	maxJobs       int
 	isRunning     bool
 	mu            sync.Mutex
+	maxJobs       int
 }
 
-func NewScheduler() (*Scheduler, error) {
-	numberWorkers, err := strconv.Atoi(os.Getenv("WORKERSNUMBER"))
-	if err != nil {
-		return nil, errors.New("Workers aren't set or not int")
-	}
-	maxJobs, err := strconv.Atoi(os.Getenv("MAXJOBS"))
-	if err != nil {
-		return nil, errors.New("Maximum number of jobs aren't set or not int")
-	}
+func NewScheduler(maxJobs, numberWorkers int) *Scheduler {
 
 	return &Scheduler{
 		queue:         newQueue(maxJobs),
 		currentJobs:   make(map[string]*Job),
 		numberWorkers: numberWorkers,
 		maxJobs:       maxJobs,
-	}, nil
+	}
 }
 
 func (s *Scheduler) FuncJob(identifier string, f interface{}, params ...interface{}) (*Job, error) {
@@ -45,6 +36,15 @@ func (s *Scheduler) FuncJob(identifier string, f interface{}, params ...interfac
 		return nil, errors.New("Identifiers must be unique for each job")
 	}
 	j := newFunctionJob(identifier, f, params)
+	s.currentJobs[identifier] = j
+	return j, nil
+}
+
+func (s *Scheduler) EventJob(identifier string, ch *amqp.Channel, exchange string, routingKey string, mandatory bool, immediate bool, contentType string, body []byte) (*Job, error) {
+	if _, ok := s.currentJobs[identifier]; ok {
+		return nil, errors.New("Identifiers must be unique for each job")
+	}
+	j := newEventJob(identifier, ch, exchange, routingKey, mandatory, immediate, contentType, body)
 	s.currentJobs[identifier] = j
 	return j, nil
 }
@@ -80,9 +80,9 @@ func (s *Scheduler) Schedule(job *Job) error {
 func (s *Scheduler) asyncAllocate() {
 	for j := range s.jobs {
 		log.Info("Allocating job ", j.GetIdentifier(), " to a worker")
-		if len(s.workers) > 1 {
+		if len(s.workers) > 1 && s.IsRunning() {
 			w := s.workers[0]
-			w.functions <- j.f
+			w.jobs <- j
 			s.workers = s.workers[1:]
 			s.workers = append(s.workers, w)
 		}
@@ -129,7 +129,7 @@ func (s *Scheduler) Stop() {
 	}
 	s.isRunning = false
 	for _, w := range s.workers {
-		close(w.functions)
+		close(w.jobs)
 	}
 	s.quit <- true
 	close(s.quit)
