@@ -125,11 +125,13 @@ We don't create the functions or rabbit servers/events/queue for you. You supply
 
 ## Contributions Priority
 
-1. Create distributed logging.
-2. Use Redis to avoid race conditions if ran on a distributed system. 
-3. Use time-zones for scheduling jobs.
-4. More test cases!
-5. Add more message brokers (Currently only RabbitMQ is supperted)
+1. Use Redis to avoid race conditions if ran on a distributed system. 
+2. Consider time-zones when scheduling jobs.
+3. Edit/Remove Jobs.
+4. Central Logging.
+5. Add more message brokers (Currently only RabbitMQ is supperted).
+6. More test cases.
+
 
 ## Inspired from
 
