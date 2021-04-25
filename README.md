@@ -1,10 +1,31 @@
-# GOSCHEDULE
+<h1 align="center">
+  <br>
+  <img src="assets/logo.jpg" alt="Markdownify" width="300">
+  <br>
+  goschedule
+  <br>
+</h1>
 
-<img src="assets/logo.jpg" align="right"
-     alt="GOSCHEDULE by Salem" width="200" height="200">
+<h4 align="center">An easy-to-use in-process scheduler to schedule functions and events.</h4>
 
-GOSCHEDULE is an easy-to-understand in-process scheduler to schedule functions and events.
-## How To Use It
+<p align="center">
+  <a href="#key-features">Key Features</a> •
+  <a href="#how-to-use">How To Use</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#usage">Usage</a> •
+  <a href="#contribution-priority">Contributions Priority</a> •
+  <a href="#inspired-from">Inspired From</a> •
+  <a href="#license">License</a>
+</p>
+
+## Key Features
+
+* Schedule functions to run once or periodically at a time and interval of your choice.
+* Schedule RabbitMQ events to be published once or periodically at a time and interval of your choice.
+* Logs for every job run.  
+* Ability to view information about scheduled jobs (Functions and Events).
+
+## How To Use
 
 1. Define number of Jobs and Workers.
 2. Create a Scheduler and start it. 
@@ -113,3 +134,7 @@ We don't create the functions or rabbit servers/events/queue for you. You supply
 ## Inspired from
 
 1. https://github.com/jasonlvhit/gocron
+
+## License
+
+MIT
