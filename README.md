@@ -36,10 +36,11 @@
 
 ## How It Works
 
-1. Jobs are queued into a priorityqueue based on their next running time. 
+1. Jobs are queued into a priorityqueue based on their next planning running time. 
 2. When a job is due it's sent to a worker.
-3. The worker works the job. 
-4. Everything happens asynchronously.
+3. The worker works the job.
+4. Jobs are distributed among workers fairly. 
+5. Everything works asynchronously.
 ## Usage
 
 ### Install
