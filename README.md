@@ -24,6 +24,7 @@
 * Schedule RabbitMQ events to be published once or periodically at a time and interval of your choice.
 * Logs for every job run.  
 * Ability to view information about scheduled jobs (Functions and Events).
+* Even if a function/event breaks during execution, the scheduler will remain running while updating the user that something broke.
 
 ## How To Use
 
