@@ -102,6 +102,7 @@ We don't create the functions or rabbit servers/events/queue for you. You supply
 2. Use Redis to avoid race conditions if ran on a distributed system. 
 3. Use time-zones for scheduling jobs.
 4. More test cases!
+5. Add more message brokers (Currently only RabbitMQ is supperted)
 
 ## Inspired from
 
