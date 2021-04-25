@@ -92,6 +92,12 @@ func main(){
     baseLogger.Info(j.JobInfo().RanBefore, j.JobInfo(). FunctionInfo.LatestExecutionTime, j.JobInfo().FunctionInfo.  Results)
 ```
 
+### Safely stop the Scheduler
+
+```
+    scheduler.Stop()
+```
+
 ### You have control
 
 We don't create the functions or rabbit servers/events/queue for you. You supply us with them. We just safely run them at the scheduled time. 
