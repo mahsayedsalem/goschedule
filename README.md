@@ -1,546 +1,108 @@
 # GOSCHEDULE
 
-<img src="https://ai.github.io/size-limit/logo.svg" align="right"
-     alt="Size Limit logo by Anton Lovchikov" width="120" height="178">
+<img src="assets/logo.jpg" align="right"
+     alt="GOSCHEDULE by Salem" width="200" height="200">
 
-Size Limit is a performance budget tool for JavaScript. It checks every commit
-on CI, calculates the real cost of your JS for end-users and throws an error
-if the cost exceeds the limit.
+GOSCHEDULE is an easy-to-understand in-process scheduler to schedule functions and events.
+## How To Use It
 
-* **ES modules** and **tree-shaking** support.
-* Add Size Limit to **Travis CI**, **Circle CI**, **GitHub Actions**
-  or another CI system to know if a pull request adds a massive dependency.
-* **Modular** to fit different use cases: big JS applications
-  that use their own bundler or small npm libraries with many files.
-* Can calculate **the time** it would take a browser
-  to download and **execute** your JS. Time is a much more accurate
-  and understandable metric compared to the size in bytes.
-* Calculations include **all dependencies and polyfills**
-  used in your JS.
-
-<p align="center">
-  <img src="./img/example.png" alt="Size Limit CLI" width="738">
-</p>
-
-With **[GitHub action]** Size Limit will post bundle size changes as a comment
-in pull request discussion.
-
-<p align="center">
-<img src="https://raw.githubusercontent.com/andresz1/size-limit-action/master/assets/pr.png"
-  alt="Size Limit comment in pull request about bundle size changes"
-  width="686" height="289">
-</p>
-
-With `--why`, Size Limit can tell you *why* your library is of this size
-and show the real cost of all your internal dependencies.
-
-<p align="center">
-  <img src="./img/why.png" alt="Bundle Analyzer example" width="650">
-</p>
-
-<p align="center">
-  <a href="https://evilmartians.com/?utm_source=size-limit">
-    <img src="https://evilmartians.com/badges/sponsored-by-evil-martians.svg"
-         alt="Sponsored by Evil Martians" width="236" height="54">
-  </a>
-</p>
-
-[GitHub action]: https://github.com/andresz1/size-limit-action
-[cult-img]:      http://cultofmartians.com/assets/badges/badge.svg
-[cult]:          http://cultofmartians.com/tasks/size-limit-config.html
-
-## Who Uses Size Limit
-
-* [MobX](https://github.com/mobxjs/mobx)
-* [Material-UI](https://github.com/callemall/material-ui)
-* [Autoprefixer](https://github.com/postcss/autoprefixer)
-* [PostCSS](https://github.com/postcss/postcss) reduced
-  [25% of the size](https://github.com/postcss/postcss/commit/150edaa42f6d7ede73d8c72be9909f0a0f87a70f).
-* [Browserslist](https://github.com/ai/browserslist) reduced
-  [25% of the size](https://github.com/ai/browserslist/commit/640b62fa83a20897cae75298a9f2715642531623).
-* [EmojiMart](https://github.com/missive/emoji-mart) reduced
-  [20% of the size](https://github.com/missive/emoji-mart/pull/111)
-* [nanoid](https://github.com/ai/nanoid) reduced
-  [33% of the size](https://github.com/ai/nanoid/commit/036612e7d6cc5760313a8850a2751a5e95184eab).
-* [React Focus Lock](https://github.com/theKashey/react-focus-lock) reduced
-  [32% of the size](https://github.com/theKashey/react-focus-lock/pull/48).
-* [Logux](https://github.com/logux) reduced
-  [90% of the size](https://github.com/logux/logux-client/commit/62b258e20e1818b23ae39b9c4cd49e2495781e91).
-
+1. Define number of Jobs and Workers.
+2. Create a Scheduler and start it. 
+3. Choose what kind of job do you want; Function or Event.
+4. Schedule your Job. 
+5. Monitor your Jobs while they are running.
 
 ## How It Works
 
-1. Size Limit contains a CLI tool, 3 plugins (`file`, `webpack`, `time`)
-   and 3 plugin presets for popular use cases (`app`, `big-lib`, `small-lib`).
-   A CLI tool finds plugins in `package.json` and loads the config.
-2. If you use the `webpack` plugin, Size Limit will bundle your JS files into
-   a single file. It is important to track dependencies and webpack polyfills.
-   It is also useful for small libraries with many small files and without
-   a bundler.
-3. The `webpack` plugin creates an empty webpack project, adds your library
-   and looks for the bundle size difference.
-4. The `time` plugin compares the current machine performance with that of
-   a low-priced Android devices to calculate the CPU throttling rate.
-5. Then the `time` plugin runs headless Chrome (or desktop Chrome if it’s
-   available) to track the time a browser takes to compile and execute your JS.
-   Note that these measurements depend on available resources and might
-   be unstable. [See here](https://github.com/mbalabash/estimo/issues/5)
-   for more details.
-
-
+1. Jobs are queued into a priorityqueue based on their next running time. 
+2. When a job is due it's sent to a worker.
+3. The worker works the job. 
+4. Everything happens asynchronously.
 ## Usage
 
-### JS Applications
+### Install
 
-Suitable for applications that have their own bundler and send the JS bundle
-directly to a client (without publishing it to npm). Think of a user-facing app
-or website, like an email client, a CRM, a landing page or a blog with
-interactive elements, using React/Vue/Svelte lib or vanilla JS.
-
-<details><summary><b>Show instructions</b></summary>
-
-1. Install the preset:
-
-    ```sh
-    $ npm install --save-dev size-limit @size-limit/file
-    ```
-
-2. Add the `size-limit` section and the `size` script to your `package.json`:
-
-    ```diff
-    + "size-limit": [
-    +   {
-    +     "path": "dist/app-*.js"
-    +   }
-    + ],
-      "scripts": {
-        "build": "webpack ./webpack.config.js",
-    +   "size": "npm run build && size-limit",
-        "test": "jest && eslint ."
-      }
-    ```
-
-3. Here’s how you can get the size for your current project:
-
-    ```sh
-    $ npm run size
-
-      Package size: 30.08 kB with all dependencies, minified and gzipped
-    ```
-
-4. Now, let’s set the limit. Add 25% to the current total time and use that as
-   the limit in your `package.json`:
-
-    ```diff
-      "size-limit": [
-        {
-    +     "limit": "35 kB",
-          "path": "dist/app-*.js"
-        }
-      ],
-    ```
-
-5. Add the `size` script to your test suite:
-
-    ```diff
-      "scripts": {
-        "build": "webpack ./webpack.config.js",
-        "size": "npm run build && size-limit",
-    -   "test": "jest && eslint ."
-    +   "test": "jest && eslint . && npm run size"
-      }
-    ```
-
-6. If you don’t have a continuous integration service running, don’t forget
-   to add one — start with [Travis CI].
-
-</details>
-
-
-### JS Application and Time-based Limit
-
-File size limit (in kB) is not the best way to describe your JS application
-cost for developers. Developers will compare the size of the JS bundle
-with the size of images. But browsers need much more time to parse 100 kB
-of JS than 100 kB of an image since JS compilers are very complex.
-
-This is why Size Limit support time-based limit. It runs headless Chrome
-to track the time a browser takes to compile and execute your JS.
-
-<details><summary><b>Show instructions</b></summary>
-
-1. Install the preset:
-
-    ```sh
-    $ npm install --save-dev size-limit @size-limit/preset-app
-    ```
-
-2. Add the `size-limit` section and the `size` script to your `package.json`:
-
-    ```diff
-    + "size-limit": [
-    +   {
-    +     "path": "dist/app-*.js"
-    +   }
-    + ],
-      "scripts": {
-        "build": "webpack ./webpack.config.js",
-    +   "size": "npm run build && size-limit",
-        "test": "jest && eslint ."
-      }
-    ```
-
-3. Here’s how you can get the size for your current project:
-
-    ```sh
-    $ npm run size
-
-      Package size: 30.08 kB with all dependencies, minified and gzipped
-      Loading time: 602 ms   on slow 3G
-      Running time: 214 ms   on Snapdragon 410
-      Total time:   815 ms
-    ```
-
-4. Now, let’s set the limit. Add 25% to the current total time and use that as
-   the limit in your `package.json`:
-
-    ```diff
-      "size-limit": [
-        {
-    +     "limit": "1 s",
-          "path": "dist/app-*.js"
-        }
-      ],
-    ```
-
-5. Add the `size` script to your test suite:
-
-    ```diff
-      "scripts": {
-        "build": "webpack ./webpack.config.js",
-        "size": "npm run build && size-limit",
-    -   "test": "jest && eslint ."
-    +   "test": "jest && eslint . && npm run size"
-      }
-    ```
-
-6. If you don’t have a continuous integration service running, don’t forget
-   to add one — start with [Travis CI].
-
-</details>
-
-
-### Big Libraries
-
-JS libraries > 10 kB in size.
-
-This preset includes headless Chrome, and will measure your lib’s execution
-time. You likely don’t need this overhead for a small 2 kB lib, but for larger
-ones the execution time is a more accurate and understandable metric that
-the size in bytes. Library like [React] is a good example for this preset.
-
-<details><summary><b>Show instructions</b></summary>
-
-1. Install preset:
-
-    ```sh
-    $ npm install --save-dev size-limit @size-limit/preset-big-lib
-    ```
-
-2. Add the `size-limit` section and the `size` script to your `package.json`:
-
-    ```diff
-    + "size-limit": [
-    +   {
-    +     "path": "dist/react.production-*.js"
-    +   }
-    + ],
-      "scripts": {
-        "build": "webpack ./scripts/rollup/build.js",
-    +   "size": "npm run build && size-limit",
-        "test": "jest && eslint ."
-      }
-    ```
-
-3. If you use ES modules you can test the size after tree-shaking with `import`
-   option:
-
-    ```diff
-      "size-limit": [
-        {
-          "path": "dist/react.production-*.js",
-    +     "import": "{ createComponent }"
-        }
-      ],
-    ```
-
-4. Here’s how you can get the size for your current project:
-
-    ```sh
-    $ npm run size
-
-      Package size: 30.08 kB with all dependencies, minified and gzipped
-      Loading time: 602 ms   on slow 3G
-      Running time: 214 ms   on Snapdragon 410
-      Total time:   815 ms
-    ```
-
-5. Now, let’s set the limit. Add 25% to the current total time and use that
-   as the limit in your `package.json`:
-
-    ```diff
-      "size-limit": [
-        {
-    +     "limit": "1 s",
-          "path": "dist/react.production-*.js"
-        }
-      ],
-    ```
-
-6. Add a `size` script to your test suite:
-
-    ```diff
-      "scripts": {
-        "build": "rollup ./scripts/rollup/build.js",
-        "size": "npm run build && size-limit",
-    -   "test": "jest && eslint ."
-    +   "test": "jest && eslint . && npm run size"
-      }
-    ```
-
-7. If you don’t have a continuous integration service running, don’t forget
-   to add one — start with [Travis CI].
-8. Add the library size to docs, it will help users to choose your project:
-
-    ```diff
-      # Project Name
-
-      Short project description
-
-      * **Fast.** 10% faster than competitor.
-    + * **Small.** 15 kB (minified and gzipped).
-    +   [Size Limit](https://github.com/ai/size-limit) controls the size.
-    ```
-
-</details>
-
-
-### Small Libraries
-
-JS libraries < 10 kB in size.
-
-This preset will only measure the size, without the execution time, so it’s
-suitable for small libraries. If your library is larger, you likely want
-the Big Libraries preset above. [Nano ID] or [Storeon] are good examples
-for this preset.
-
-<details><summary><b>Show instructions</b></summary>
-
-1. First, install `size-limit`:
-
-    ```sh
-    $ npm install --save-dev size-limit @size-limit/preset-small-lib
-    ```
-
-2. Add the `size-limit` section and the `size` script to your `package.json`:
-
-    ```diff
-    + "size-limit": [
-    +   {
-    +     "path": "index.js"
-    +   }
-    + ],
-      "scripts": {
-    +   "size": "size-limit",
-        "test": "jest && eslint ."
-      }
-    ```
-
-3. Here’s how you can get the size for your current project:
-
-    ```sh
-    $ npm run size
-
-      Package size: 177 B with all dependencies, minified and gzipped
-    ```
-
-4. If your project size starts to look bloated, run `--why` for analysis:
-
-    ```sh
-    $ npm run size -- --why
-    ```
-
-5. Now, let’s set the limit. Determine the current size of your library,
-   add just a little bit (a kilobyte, maybe) and use that as the limit
-   in your `package.json`:
-
-    ```diff
-     "size-limit": [
-        {
-    +     "limit": "9 kB",
-          "path": "index.js"
-        }
-     ],
-    ```
-
-6. Add the `size` script to your test suite:
-
-    ```diff
-      "scripts": {
-        "size": "size-limit",
-    -   "test": "jest && eslint ."
-    +   "test": "jest && eslint . && npm run size"
-      }
-    ```
-
-7. If you don’t have a continuous integration service running, don’t forget
-   to add one — start with [Travis CI].
-8. Add the library size to docs, it will help users to choose your project:
-
-    ```diff
-      # Project Name
-
-      Short project description
-
-      * **Fast.** 10% faster than competitor.
-    + * **Small.** 500 bytes (minified and gzipped). No dependencies.
-    +   [Size Limit](https://github.com/ai/size-limit) controls the size.
-    ```
-
-</details>
-
-[Travis CI]: https://github.com/dwyl/learn-travis
-[Storeon]: https://github.com/ai/storeon/
-[Nano ID]: https://github.com/ai/nanoid/
-[React]: https://github.com/facebook/react/
-
-
-## Reports
-
-Size Limit has a [GitHub action] that comments and rejects pull requests based
-on Size Limit output.
-
-1. Install and configure Size Limit as shown above.
-2. Add the following action inside `.github/workflows/size-limit.yml`
-
-```yaml
-name: "size"
-on:
-  pull_request:
-    branches:
-      - master
-jobs:
-  size:
-    runs-on: ubuntu-latest
-    env:
-      CI_JOB_NUMBER: 1
-    steps:
-      - uses: actions/checkout@v1
-      - uses: andresz1/size-limit-action@v1.0.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+```sh
+$ go get https://github.com/mahsayedsalem/goschedule
 ```
 
+### Create a Scheduler
 
-## Config
+```
+// function to attach to the job
+func example1(a, b int, c string) {
+	log.Println("Example 1: ", c, "is sum", a+b)
+}
 
-Size Limits supports three ways to define config.
+func main(){
+    baseLogger := logrus.New()
+    numberWorkers, err := strconv.Atoi(os.Getenv("WORKERSNUMBER"))
+    failOnError(err, baseLogger)
+    maxJobs, err := strconv.Atoi(os.Getenv("MAXJOBS"))
+    failOnError(err, baseLogger)
+    scheduler := goschedule.NewScheduler(maxJobs, numberWorkers)
+    scheduler.Start()
+}
+```
 
-1. `size-limit` section in `package.json`:
+### Create a Job
+```
+    j, err := scheduler.FuncJob("exampleFunc1", example1, 1, 2, "Sum")
+    failOnError(err, baseLogger)
+```
 
-   ```json
-     "size-limit": [
-       {
-         "path": "index.js",
-         "import": "{ createStore }",
-         "limit": "500 ms"
-       }
-     ]
-   ```
+### Schedule a Job
+```
+    j.At(time.Now().Add(5 * time.Second)).Every(5 * time.Second)
+    scheduler.Schedule(j)
+```
 
-2. or a separate `.size-limit.json` config file:
+### Schedule an Event
+```
+    conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
+    failOnError(err, baseLogger)
+    defer conn.Close()  
+    ch, err := conn.Channel()
+    failOnError(err, baseLogger)
+    defer ch.Close()
+    q, err := ch.QueueDeclare(
+    	"hello", // name
+    	false,   // durable
+    	false,   // delete when unused
+    	false,   // exclusive
+    	false,   // no-wait
+    	nil,     // arguments
+    )
+    failOnError(err, baseLogger)
+    body := []byte("Hello World 1!")
+    exchange := ""
+    routingKey := q.Name
+    mandatory := false
+    immediate := false
+    contentType := "text/plain" 
+    j3, err := scheduler.EventJob("exampleEvent1", ch,  exchange, routingKey, mandatory, immediate,   contentType, body)
+    failOnError(err, baseLogger)
+    j3.At(time.Now().Add(10 * time.Second)).Every(5 * time  Second)
+    scheduler.Schedule(j3)
+```
 
-   ```js
-   [
-     {
-       "path": "index.js",
-       "import": "{ createStore }",
-       "limit": "500 ms"
-     }
-   ]
-   ```
+### Get info about the Job
 
-3. or a more flexible `.size-limit.js` config file:
+```
+    baseLogger.Info(j.JobInfo().RanBefore, j.JobInfo(). FunctionInfo.LatestExecutionTime, j.JobInfo().FunctionInfo.  Results)
+```
 
-   ```js
-   module.exports = [
-     {
-       path: "index.js",
-       import: "{ createStore }",
-       limit: "500 ms"
-     }
-   ]
-   ```
+### You have control
 
-Each section in the config can have these options:
+We don't create the functions or rabbit servers/events/queue for you. You supply us with them. We just safely run them at the scheduled time. 
 
-* **path**: relative paths to files. The only mandatory option.
-  It could be a path `"index.js"`, a [pattern] `"dist/app-*.js"`
-  or an array `["index.js", "dist/app-*.js", "!dist/app-exclude.js"]`.
-* **import**: partial import to test tree-shaking. It could be `"{ lib }"`
-  to test `import { lib } from 'lib'` or `{ "a.js": "{ a }", "b.js": "{ b }" }`
-  to test multiple files.
-* **limit**: size or time limit for files from the `path` option. It should be
-  a string with a number and unit, separated by a space.
-  Format: `100 B`, `10 kB`, `500 ms`, `1 s`.
-* **name**: the name of the current section. It will only be useful
-  if you have multiple sections.
-* **entry**: when using a custom webpack config, a webpack entry could be given.
-  It could be a string or an array of strings.
-  By default, the total size of all entry points will be checked.
-* **webpack**: with `false` it will disable webpack.
-* **running**: with `false` it will disable calculating running time.
-* **gzip**: with `false` it will disable gzip compression.
-* **brotli**: with `true` it will use brotli compression and disable gzip compression.
-* **config**: a path to a custom webpack config.
-* **ignore**: an array of files and dependencies to exclude from
-  the project size calculation.
+## Contributions Priority
 
-If you use Size Limit to track the size of CSS files, make sure to set
-`webpack: false`. Otherwise, you will get wrong numbers, because webpack
-inserts `style-loader` runtime (≈2 kB) into the bundle.
+1. Create distributed logging.
+2. Use Redis to avoid race conditions if ran on a distributed system. 
+3. Use time-zones for scheduling jobs.
+4. More test cases!
 
-[pattern]: https://github.com/sindresorhus/globby#globbing-patterns
+## Inspired from
 
-
-## Plugins and Presets
-
-Plugins:
-
-* `@size-limit/file` checks the size of files with Gzip, Brotli
-  or without compression.
-* `@size-limit/webpack` adds your library to empty webpack project
-  and prepares bundle file for `file` plugin.
-* `@size-limit/time` uses headless Chrome to track time to execute JS.
-* `@size-limit/dual-publish` compiles files to ES modules with [`dual-publish`]
-  to check size after tree-shaking.
-
-Plugin presets:
-
-* `@size-limit/preset-app` contains `file` and `time` plugins.
-* `@size-limit/preset-big-lib` contains `webpack`, `file`, and `time` plugins.
-* `@size-limit/preset-small-lib` contains `webpack` and `file` plugins.
-
-[`dual-publish`]: https://github.com/ai/dual-publish
-
-
-## JS API
-
-```js
-const sizeLimit = require('size-limit')
-const filePlugin = require('@size-limit/file')
-const webpackPlugin = require('@size-limit/webpack')
-
-sizeLimit([filePlugin, webpackPlugin], [filePath]).then(result => {
-  result //=> { size: 12480 }
-})
+1. https://github.com/jasonlvhit/gocron
