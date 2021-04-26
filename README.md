@@ -38,9 +38,12 @@
 
 1. Jobs are queued into a priorityqueue based on their next planning running time. 
 2. When a job is due it's sent to a worker.
-3. The worker works the job.
-4. Jobs are distributed among workers fairly. 
-5. Everything works asynchronously.
+3. The worker executes the job.
+4. Even if a scheduler stops. The worker will wait until all the jobs he executed finishes running before it terminate itself.
+5. Jobs are distributed among workers fairly. 
+6. Everything works asynchronously.
+7. Jobs are shared between scheduler and workers / sheduler and priority-queue through go channels.
+8. Special care was taken to avoid goroutine leakages.
 ## Usage
 
 ### Install
@@ -124,16 +127,19 @@ func main(){
 
 ### You have control
 
-We don't create the functions or rabbit servers/events/queue for you. You supply us with them. We just safely run them at the scheduled time. 
+We don't create the functions or rabbit servers/events/queue for you. You supply us with them. We just safely run them at the scheduled time.
+
+You're responsible for setting up the functions properly or testing RabbitMQ connectivity.
 
 ## Contributions Priority
 
-1. Use Redis to avoid race conditions if ran on a distributed system. 
-2. Consider time-zones when scheduling jobs.
-3. Edit/Remove Jobs.
-4. Central Logging.
-5. Add more message brokers (Currently only RabbitMQ is supperted).
-6. More test cases.
+1. Use Redis to avoid pririty queue race conditions if ran on a distributed system. 
+2. Use Redis to store jobs unique identifiers and parameters, and ensure identifiers aren't duplicated.
+3. Consider time-zones when scheduling jobs.
+4. Edit/Remove Jobs.
+5. Central Logging.
+6. Add more message brokers (Currently RabbitMQ is supperted, Kafka will be integratetd next).
+7. More test cases.
 
 
 ## Inspired from
