@@ -37,7 +37,7 @@
 
 ## How It Works
 
-1. Jobs are queued into a priorityqueue based on their next planning running time. 
+1. Jobs are queued into a priorityqueue based on their next planned running time. 
 2. When a job is due it's sent to a worker.
 3. The worker executes the job.
 4. Even if a scheduler stops. The worker will wait until all the jobs he executed finish running before it terminate itself.
