@@ -70,6 +70,7 @@ func main(){
 
 ### Create a Job
 ```
+    // params are (unique identifier, function signature, ...paramaters)
     j, err := scheduler.FuncJob("exampleFunc1", example1, 1, 2, "Sum")
     failOnError(err, baseLogger)
 ```
