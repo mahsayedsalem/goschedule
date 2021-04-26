@@ -25,6 +25,7 @@
 * Logs for every job run.  
 * Ability to view information about scheduled jobs (Functions and Events).
 * Even if a function/event breaks during execution, the scheduler will remain running while updating the user that something broke.
+* Events can be scheduled to be published and can be consumed by any service subscribing to the queue; hence, you're not stuck with Go in case you needed any other language.
 
 ## How To Use
 
@@ -39,10 +40,10 @@
 1. Jobs are queued into a priorityqueue based on their next planning running time. 
 2. When a job is due it's sent to a worker.
 3. The worker executes the job.
-4. Even if a scheduler stops. The worker will wait until all the jobs he executed finishes running before it terminate itself.
+4. Even if a scheduler stops. The worker will wait until all the jobs he executed finish running before it terminate itself.
 5. Jobs are distributed among workers fairly. 
 6. Everything works asynchronously.
-7. Jobs are shared between scheduler and workers / sheduler and priority-queue through go channels.
+7. Jobs are shared between priority-queue and workers / sheduler and priority-queue through go channels.
 8. Special care was taken to avoid goroutine leakages.
 ## Usage
 
