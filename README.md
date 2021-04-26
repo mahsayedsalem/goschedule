@@ -53,6 +53,10 @@
 $ go get https://github.com/mahsayedsalem/goschedule
 ```
 
+```
+import "github.com/mahsayedsalem/goschedule"
+```
+
 ### Create a Scheduler
 
 ```
