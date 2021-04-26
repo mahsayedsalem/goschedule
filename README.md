@@ -138,7 +138,7 @@ You're responsible for setting up the functions properly or testing RabbitMQ con
 
 ## Contributions Priority
 
-- [ ] Use Redis to avoid pririty queue race conditions if ran on a distributed system. 
+- [ ] Use Redis to avoid priority-queue race conditions if ran on a distributed system during job insertions and removal. 
 - [ ] Use Redis to store jobs unique identifiers and parameters, and ensure identifiers aren't duplicated.
 - [ ] Consider time-zones when scheduling jobs.
 - [ ] Edit/Remove Jobs.
