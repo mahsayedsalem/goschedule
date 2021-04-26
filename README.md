@@ -100,12 +100,15 @@ func main(){
 
 ### Schedule an Event
 ```
+    // create rabbitMQ client
     conn, err := amqp.Dial(os.Getenv("RABBITMQ_URL"))
     failOnError(err, baseLogger)
     defer conn.Close()  
+    
     ch, err := conn.Channel()
     failOnError(err, baseLogger)
     defer ch.Close()
+    
     q, err := ch.QueueDeclare(
     	"hello", // name
     	false,   // durable
@@ -115,14 +118,17 @@ func main(){
     	nil,     // arguments
     )
     failOnError(err, baseLogger)
+    
     body := []byte("Hello World 1!")
     exchange := ""
     routingKey := q.Name
     mandatory := false
     immediate := false
     contentType := "text/plain" 
+    // event job
     j3, err := scheduler.EventJob("exampleEvent1", ch,  exchange, routingKey, mandatory, immediate,   contentType, body)
     failOnError(err, baseLogger)
+    
     j3.At(time.Now().Add(10 * time.Second)).Every(5 * time  Second)
     scheduler.Schedule(j3)
 ```
