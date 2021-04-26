@@ -60,6 +60,12 @@ import "github.com/mahsayedsalem/goschedule"
 ### Create a Scheduler
 
 ```
+func failOnError(err error, baseLogger *logrus.Logger) {
+	if err != nil {
+		baseLogger.Fatalf(err.Error())
+	}
+}
+
 // function to attach to the job
 func example1(a, b int, c string) {
 	log.Println("Example 1: ", c, "is sum", a+b)
