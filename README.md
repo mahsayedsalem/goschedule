@@ -85,7 +85,7 @@ func main(){
 }
 ```
 
-### Create a Job
+### Create a Job to run a Function
 ```
     // params are (unique identifier, function signature, ...paramaters)
     j, err := scheduler.FuncJob("exampleFunc1", example1, 1, 2, "Sum")
