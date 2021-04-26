@@ -79,7 +79,7 @@ func main(){
 
     maxJobs, err := strconv.Atoi(os.Getenv("MAXJOBS"))
     failOnError(err, baseLogger)
-    
+
     scheduler := goschedule.NewScheduler(maxJobs, numberWorkers)
     scheduler.Start()
 }
@@ -92,7 +92,7 @@ func main(){
     failOnError(err, baseLogger)
 ```
 
-### Schedule a Job
+### Schedule a Function
 ```
     j.At(time.Now().Add(5 * time.Second)).Every(5 * time.Second)
     scheduler.Schedule(j)
