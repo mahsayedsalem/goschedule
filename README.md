@@ -138,13 +138,14 @@ You're responsible for setting up the functions properly or testing RabbitMQ con
 
 ## Contributions Priority
 
-1. Use Redis to avoid pririty queue race conditions if ran on a distributed system. 
-2. Use Redis to store jobs unique identifiers and parameters, and ensure identifiers aren't duplicated.
-3. Consider time-zones when scheduling jobs.
-4. Edit/Remove Jobs.
-5. Central Logging.
-6. Add more message brokers (Currently RabbitMQ is supperted, Kafka will be integratetd next).
-7. More test cases.
+- [ ] Use Redis to avoid pririty queue race conditions if ran on a distributed system. 
+- [ ] Use Redis to store jobs unique identifiers and parameters, and ensure identifiers aren't duplicated.
+- [ ] Consider time-zones when scheduling jobs.
+- [ ] Edit/Remove Jobs.
+- [ ] Central Logging.
+- [ ] Add more message brokers (Currently RabbitMQ is supperted, Kafka will be integratetd next).
+- [ ] Create a circuit-breaker to retry failed jobs a number of times then remove it from the queue until updated.  
+- [ ] Implement a dead-job-queue to store failing jobs.
 
 
 ## Inspired from
