@@ -73,10 +73,13 @@ func example1(a, b int, c string) {
 
 func main(){
     baseLogger := logrus.New()
+
     numberWorkers, err := strconv.Atoi(os.Getenv("WORKERSNUMBER"))
     failOnError(err, baseLogger)
+
     maxJobs, err := strconv.Atoi(os.Getenv("MAXJOBS"))
     failOnError(err, baseLogger)
+    
     scheduler := goschedule.NewScheduler(maxJobs, numberWorkers)
     scheduler.Start()
 }
